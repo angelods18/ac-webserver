@@ -21,7 +21,7 @@ public class SecurityConfig {
 		
 		CorsConfiguration corsConfiguration = new CorsConfiguration();
         corsConfiguration
-                .setAllowedOrigins(List.of("http://localhost:4200", "https://ac-website.herokuapp.com"));
+                .setAllowedOrigins(List.of("http://localhost:4200", "https://ac-gaeta-website.herokuapp.com"));
         corsConfiguration.setAllowedHeaders(List.of("Authorization", "Cache-Control", "Content-Type", "Diocesi"));
         corsConfiguration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"));
         corsConfiguration.setAllowCredentials(true);
