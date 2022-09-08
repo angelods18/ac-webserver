@@ -47,6 +47,12 @@ public class IncontroServiceImpl implements IncontroService{
 	private static final String TAGS = "tags";
 	private static final String TAG_COUNTER= "counter";
 	private static final String VERSION = "version";
+	private static final String ALLEGATI ="allegati";
+	private static final String DESCRIZIONE = "descrizione";
+	private static final String OBIETTIVO = "obiettivo";
+	private static final String ETA = "eta";
+	private static final String TITOLO = "titolo";
+	private static final String PARTECIPANTI = "partecipanti";
 	
 	@Autowired
 	private TagRepository tagRepository;
@@ -126,7 +132,13 @@ public class IncontroServiceImpl implements IncontroService{
 		Document lookup = lookupMediaAggregation();
 
 		AggregationOperation match = Aggregation.match(criteria);
-		List<AggregationOperation> aggregationList = new ArrayList<>(Arrays.asList(match, l->lookup));
+		Document unwindPreserveEmptyArray = new Document("$unwind", 
+				new Document("path","$allegati")
+				.append("preserveNullAndEmptyArrays",true));
+		Document addField = new Document("$addFields", new Document("fileId", new Document("$toObjectId","$allegati")));
+		AggregationOperation group = groupIncontri();
+		List<AggregationOperation> aggregationList = 
+				new ArrayList<>(Arrays.asList(match, u -> unwindPreserveEmptyArray, a->addField, l->lookup, group));
 				
 		Aggregation aggregation = Aggregation.newAggregation(aggregationList);
 		return mongoTemplate.aggregate(aggregation, INCONTRO, IncontroResponse.class).getUniqueMappedResult();
@@ -199,15 +211,16 @@ public class IncontroServiceImpl implements IncontroService{
 	private Document lookupMediaAggregation() {
 		Document lookup = new Document("$lookup", 
 				new Document("from", "fs.files")
-            		.append("let", 
-					    new Document("fileId", 
-					    new Document("$toObjectId", "$_id")))
-			        .append("pipeline", Arrays.asList(new Document("$match", 
-		                new Document("$expr", Arrays.asList(new Document("allegati", "$$fileId")))), 
-		                new Document("$project", 
-	                		new Document("filename", 1L))))
+            		.append("localField", "fileId")
+            		.append("foreignField", "_id")
 		            .append("as", "allegati"));
 		return lookup;
+	}
+	
+	private AggregationOperation groupIncontri() {
+		return Aggregation.group("_id").first(TITOLO).as(TITOLO).first(TAGS).as(TAGS).first(ETA).as(ETA)
+				.first(PARROCCHIA).as(PARROCCHIA).first(SETTORE).as(SETTORE).first(OBIETTIVO).as(OBIETTIVO)
+				.first(ALLEGATI).as(ALLEGATI).first(DESCRIZIONE).as(DESCRIZIONE).first(PARTECIPANTI).as(PARTECIPANTI);
 	}
 		
 	private void removeFilesFromGridFS(List<ObjectId> fileIds) {

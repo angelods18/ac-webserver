@@ -4,9 +4,13 @@ import java.util.List;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+import org.springframework.security.core.userdetails.User;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.provisioning.InMemoryUserDetailsManager;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.web.cors.CorsConfiguration;
 
@@ -27,8 +31,26 @@ public class SecurityConfig {
         corsConfiguration.setAllowCredentials(true);
         corsConfiguration.setExposedHeaders(List.of("Authorization"));
 
-        http.cors().configurationSource(request -> corsConfiguration);
+        http
+        	.cors().configurationSource(request -> corsConfiguration)
+        	.and()
+        	.authorizeRequests()
+        		.antMatchers(HttpMethod.POST,"incontro/salva-incontro", "evento/salva-evento")
+        		.authenticated()
+            .and()
+            .httpBasic();
+
         
         return http.build();
 	}
+	
+	@Bean
+	  public InMemoryUserDetailsManager userDetailsService() {
+	    UserDetails user = User
+	        .withUsername("USER")
+	        .password("{noop}ADMIN")
+	        .roles("USER")
+	        .build();
+	    return new InMemoryUserDetailsManager(user);
+	  }
 }

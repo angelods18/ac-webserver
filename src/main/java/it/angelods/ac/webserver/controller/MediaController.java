@@ -21,7 +21,8 @@ public class MediaController {
 	@Autowired
 	private MediaService mediaService;
 	
-	@GetMapping(value="{mediaId}", produces = { MediaType.IMAGE_JPEG_VALUE, MediaType.IMAGE_PNG_VALUE,
+	@GetMapping(value="{mediaId}", produces = { 
+			MediaType.IMAGE_JPEG_VALUE, MediaType.IMAGE_PNG_VALUE,
 			MediaType.APPLICATION_PDF_VALUE})
 	public byte[] getMedia(@PathVariable("mediaId") String mediaId) {
 		try {
