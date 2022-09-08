@@ -7,6 +7,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.regex.Pattern;
 
 import org.bson.Document;
 import org.bson.types.ObjectId;
@@ -15,6 +16,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort.Direction;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.aggregation.Aggregation;
 import org.springframework.data.mongodb.core.aggregation.AggregationOperation;
@@ -121,7 +123,15 @@ public class IncontroServiceImpl implements IncontroService{
 	@Override
 	public Page<?> getTags(Map<String, Object> request, Pageable pageable) {
 		// TODO Auto-generated method stub
-		List<Tag> tags = tagRepository.findAllByOrderByCounterDesc();
+		List<Tag> tags = new ArrayList<>();
+		String tagFilter = request.get("tag")!=null ? request.get("tag").toString() : "";
+		Pattern pattern = Pattern.compile(tagFilter, Pattern.CASE_INSENSITIVE);
+		Criteria crit = Criteria.where("tag").is(pattern);
+		AggregationOperation match = Aggregation.match(crit);
+		AggregationOperation sortTags = Aggregation.sort(Direction.DESC,"counter");
+		Aggregation aggregation = Aggregation.newAggregation(match, sortTags);
+		tags = mongoTemplate.aggregate(aggregation, TAGS, Tag.class).getMappedResults();
+		
 		return new PageImpl<>(tags, pageable, tags.size());
 	}
 	

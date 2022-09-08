@@ -12,6 +12,6 @@ import it.angelods.ac.webserver.document.Tag;
 public interface TagRepository extends MongoRepository<Tag, String>{
 
 	Optional<Tag> findByTag(String tag);
-	
+		
 	List<Tag> findAllByOrderByCounterDesc();
 }
