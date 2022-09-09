@@ -2,6 +2,7 @@ package it.angelods.ac.webserver.security;
 
 import java.util.List;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
@@ -19,6 +20,12 @@ import org.springframework.web.cors.CorsConfiguration;
 @EnableGlobalMethodSecurity(prePostEnabled = true)
 public class SecurityConfig {
 
+	@Value("${credentials.username}")
+	private String username;
+	
+	@Value("${credentials.password}")
+	private String password;
+	
 	@Bean
 	public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {		// TODO Auto-generated method stub
 		http.csrf().disable();
@@ -47,8 +54,8 @@ public class SecurityConfig {
 	@Bean
 	  public InMemoryUserDetailsManager userDetailsService() {
 	    UserDetails user = User
-	        .withUsername("USER")
-	        .password("{noop}ADMIN")
+	        .withUsername(username)
+	        .password("{noop}"+password)
 	        .roles("USER")
 	        .build();
 	    return new InMemoryUserDetailsManager(user);
