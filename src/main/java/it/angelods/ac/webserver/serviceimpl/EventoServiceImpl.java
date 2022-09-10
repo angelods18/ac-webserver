@@ -1,5 +1,6 @@
 package it.angelods.ac.webserver.serviceimpl;
 
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -13,6 +14,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.domain.Sort.Direction;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.aggregation.Aggregation;
 import org.springframework.data.mongodb.core.aggregation.AggregationOperation;
@@ -42,6 +45,9 @@ public class EventoServiceImpl implements EventoService {
 	private static final String TITOLO = "titolo";
 	private static final String MONTH = "month";
 	private static final String DAY = "day";
+	private static final String LUOGO = "luogo";
+	private static final String DESCRIZIONE = "descrizione";
+	private static final String DATA_EVENTO = "dataEvento";
 	
 	@Autowired
 	private EventoRepository eventoRepository;
@@ -68,15 +74,24 @@ public class EventoServiceImpl implements EventoService {
 			    	    new Document("$month", "$dataEvento"))
 			    	            .append("settore", "$settore")
 			    	            .append("titolo", "$titolo"));
-		
+		Aggregation aggregation = null;
 		if(eventoRequest.containsKey(MONTH)) {
 			criteria = criteria.and(MONTH).is(Long.valueOf(eventoRequest.get(MONTH).toString()));
+			AggregationOperation match = Aggregation.match(criteria);
+			
+			AggregationOperation project = projectMonth();
+			
+			aggregation = Aggregation.newAggregation(project, match);
+		}else {
+			criteria = criteria.and(DATA_EVENTO).gte(Instant.now());
+			AggregationOperation match = Aggregation.match(criteria);
+			
+			AggregationOperation project = projectMonth();
+			AggregationOperation sort = Aggregation.sort(Sort.by(Direction.ASC, DATA_EVENTO));
+			
+			aggregation = Aggregation.newAggregation(project, match, sort);
 		}
-		AggregationOperation match = Aggregation.match(criteria);
 		
-		AggregationOperation project = projectMonth();
-		
-		Aggregation aggregation = Aggregation.newAggregation(project, match);
 		
 		// usa altri filtri
 		List<?> eventi = mongoTemplate.aggregate(aggregation, EVENTI, Object.class).getMappedResults();
@@ -180,6 +195,8 @@ public class EventoServiceImpl implements EventoService {
 		.andExpression("toString(_id)").as("id")
 		.andExpression("month(dataEvento)").as(MONTH)
 		.andExpression("dayOfMonth(dataEvento)").as(DAY)
-		.and(SETTORE).as(SETTORE).and(TITOLO).as(TITOLO);
+		.and(SETTORE).as(SETTORE).and(TITOLO).as(TITOLO)
+		.and(LUOGO).as(LUOGO).and(DESCRIZIONE).as(DESCRIZIONE)
+		.and(DATA_EVENTO).as(DATA_EVENTO);
 	}
 }
