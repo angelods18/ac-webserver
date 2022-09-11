@@ -55,6 +55,7 @@ public class IncontroServiceImpl implements IncontroService{
 	private static final String ETA = "eta";
 	private static final String TITOLO = "titolo";
 	private static final String PARTECIPANTI = "partecipanti";
+	private static final String SEARCH_WORD="search";
 	
 	@Autowired
 	private TagRepository tagRepository;
@@ -115,7 +116,7 @@ public class IncontroServiceImpl implements IncontroService{
 		// TODO Auto-generated method stub
 		Criteria criteria = Criteria.where(SETTORE).is(request.get("settore").toString());
 		// usa altri filtri
-		
+		manageCriteriaIncontro(criteria, request);
 		List<Incontro> incontri = mongoTemplate.aggregate(Aggregation.newAggregation(Aggregation.match(criteria)), INCONTRO, Incontro.class).getMappedResults();
 		return new PageImpl<>(incontri, pageable, incontri.size());
 	}
@@ -225,6 +226,17 @@ public class IncontroServiceImpl implements IncontroService{
             		.append("foreignField", "_id")
 		            .append("as", "allegati"));
 		return lookup;
+	}
+	
+	private void manageCriteriaIncontro(Criteria criteria, Map<String,Object> request) {
+		if(request.containsKey(SEARCH_WORD)) {
+			Pattern pattern = Pattern.compile(request.get(SEARCH_WORD).toString(), Pattern.CASE_INSENSITIVE);
+			Criteria filtroRicerca = new Criteria().orOperator(
+					Criteria.where(TITOLO).is(pattern),
+					Criteria.where(TAGS).is(pattern)
+					);
+			criteria.andOperator(filtroRicerca);
+		}
 	}
 	
 	private AggregationOperation groupIncontri() {
