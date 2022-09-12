@@ -149,10 +149,10 @@ public class EventoServiceImpl implements EventoService {
 	public EventoResponse getEvento(String eventoId) {
 		// TODO Auto-generated method stub
 		Criteria criteria = Criteria.where("_id").is(eventoId);
-		Document lookup = lookupMediaAggregation();
+		//Document lookup = lookupMediaAggregation();
 		
 		AggregationOperation match = Aggregation.match(criteria);
-		List<AggregationOperation> aggregationList = new ArrayList<>(Arrays.asList(match, l->lookup));
+		List<AggregationOperation> aggregationList = new ArrayList<>(Arrays.asList(match));
 		Aggregation aggregation = Aggregation.newAggregation(aggregationList);
 		return mongoTemplate.aggregate(aggregation, EVENTI, EventoResponse.class).getUniqueMappedResult();
 //		return incontroRepository.findById(incontroId).orElse(null);
