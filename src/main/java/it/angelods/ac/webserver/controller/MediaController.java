@@ -27,6 +27,9 @@ public class MediaController {
 	public byte[] getMedia(@PathVariable("mediaId") String mediaId) {
 		try {
 			ResourceStream rs = mediaService.getMedia(mediaId);
+			if(rs==null) {
+				return null;
+			}
 			return rs.getStream().readAllBytes();
 		} catch (IOException e) {
 			// TODO Auto-generated catch block

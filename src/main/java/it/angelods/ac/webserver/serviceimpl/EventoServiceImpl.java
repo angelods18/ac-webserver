@@ -1,6 +1,7 @@
 package it.angelods.ac.webserver.serviceimpl;
 
 import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -83,7 +84,7 @@ public class EventoServiceImpl implements EventoService {
 			
 			aggregation = Aggregation.newAggregation(project, match);
 		}else {
-			criteria = criteria.and(DATA_EVENTO).gte(Instant.now());
+			criteria = criteria.and(DATA_EVENTO).gte(Instant.now().minus(1, ChronoUnit.DAYS ));
 			AggregationOperation match = Aggregation.match(criteria);
 			
 			AggregationOperation project = projectMonth();
